@@ -1,0 +1,163 @@
+---
+title: "RMarkdown Manual"
+author: "Matthew Francis"
+date: "05/11/2019"
+output:
+  word_document:
+    reference_doc: mytemplate.docx
+    toc: yes
+    toc_depth: 1
+params:
+  area: "Birmingham"
+  age_t: 15
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction to RMarkdown
+
+R Markdown is really easy to use and can print to different document types such as word, excel, ppt etc
+
+## Set a company template
+
+This can be done as per the title parameters.
+
+
+### This is level 3 in the header hierarchy
+
+# Import data
+
+Import and manipulate data.
+
+```{r, readdata, echo=TRUE}
+
+# READ IN SOME DATA TO PLAY WITH
+patient<-read.csv("PatientData.csv")
+```
+
+Now we can do something with the data
+
+How many records are there in the dataset?
+
+
+```{r}
+recs<-nrow(patient)
+recs
+```
+
+There are `r recs` in the dataset.
+
+What fields are in the dataset?
+
+```{r, echo=TRUE }
+df_names<-names(patient)
+
+```
+
+Let's calculate some useful information?
+Let's calculate the mean weight, height and age
+
+```{r, echo =TRUE}
+library(dplyr)
+# arrange - sorts the data
+# select - selects required field names
+# filter - exactly as Excel does it.
+# mutate - creates a new field
+# sumammarise
+
+# select ID, Age, Height
+pat_selection<- patient %>%
+                  select(ID, Age, Height)
+
+pat_filter<-patient%>%
+                  filter(Age==15)
+
+patient_2<-patient %>%
+          mutate(wght_g=Weight*1000)
+
+# m_wt is the mean of the weight.
+# let's group the stats by Sex
+
+summary_stats<-patient%>%
+          group_by(Sex)%>%
+          summarise(m_wt= round(mean(Weight),1), m_ht=mean(Height), m_age=mean(Age))
+
+```
+
+
+
+But this looks really messy. We can tidy it up with flextable.
+
+```{r, echo=TRUE}
+library(flextable)
+tble_tidy<-flextable(summary_stats,
+                  col_keys=c("m_age","m_ht","m_wt") )  
+tble_tidy
+```
+
+# Insert a graph
+
+Let's do a scatter graph of weight versus height.
+
+```{r, echo=TRUE}
+library(ggplot2)
+
+patient$Sex<-as.factor(patient$Sex)
+
+p<-ggplot(patient, aes(Height, Weight,color=Sex))+
+      geom_point()
+
+p
+```
+
+https://en.wikipedia.org/wiki/RStudio#Packages
+
+# Import an image
+
+```{r, echo=TRUE}
+library(knitr)
+
+# But the PNG package is loads better
+
+include_graphics("logo.png")
+
+```
+
+1. This is the first in the numbered series  
+2. This is the second  
+10. This is the third   
+This is some random text under the third bullet point  
+4. Another point..... 
+
+Enough of numbering - use bullet points:  
+
+* use an asterisk
+
+# Passing parameters into the document
+
+This is a report I wrote out on a great trip to `r params$area`.
+
+# Automate reports from the parameters
+
+Lets say we are interested in `r params$age_t`.
+
+```{r, echo=TRUE}
+# pass from the parameters in the start of the document
+
+patient_filter<-patient%>%
+                  filter(Age==params$age_t)
+
+```
+
+# Working with table of contents
+
+You can restrict the number of levels in the table of contents using toc_depth.
+
+# Where to find more information
+
+Find more information at https://rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf
+
+A great resource for formatting tables : https://cran.r-project.org/web/packages/flextable/vignettes/overview.html
+
